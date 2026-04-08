@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test 3: Simple Box with Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-5 font-sans bg-gray-200">
+    <div id="info" class="bg-white p-4 rounded-lg mb-5">
+        <h2 class="text-xl font-bold mb-2">Test 3: Simple Box with Library</h2>
+        <p class="text-gray-600 mb-2">This test renders a simple rotating box using the Simplora WebGL library.</p>
+        <p id="status" class="text-green-600">Initializing...</p>
+    </div>
+    <canvas id="canvas" width="800" height="600" class="border-2 border-gray-800 bg-black block"></canvas>
+    
+    <script src="../dist/simplora-webgl.umd.js"></script>
+    <script>
+        const status = document.getElementById('status');
+        
+        function updateStatus(message, isError = false) {
+            status.innerHTML = message;
+            status.className = isError ? 'text-red-600' : 'text-green-600';
+            console.log(message);
+        }
+        
+        console.log('=== Test 3: Simple Box with Library ===');
+        
+        try {
+            // Check library
+            if (typeof SimploraWebGL === 'undefined') {
+                throw new Error('SimploraWebGL library not loaded');
+            }
+            updateStatus('✓ Library loaded');
+            
+            const { WebGLRenderer, Camera, Scene, Mesh, BoxGeometry, BasicMaterial } = SimploraWebGL;
+            console.log('✓ Classes imported');
+            
+            // Create renderer
+            const canvas = document.getElementById('canvas');
+            const renderer = new WebGLRenderer(canvas);
+            updateStatus('✓ Renderer created');
+            
+            // Create camera
+            const camera = new Camera(Math.PI / 4, 800 / 600, 0.1, 100);
+            camera.setPosition(0, 1.5, 4);
+            updateStatus('✓ Camera created and positioned');
+            
+            // Create scene
+            const scene = new Scene();
+            updateStatus('✓ Scene created');
+            
+            // Create box mesh
+            const boxGeometry = new BoxGeometry(1.5, 1.5, 1.5);
+            const boxMaterial = new BasicMaterial({
+                color: [0.0, 1.0, 0.5],
+                opacity: 1.0
+            });
+            const box = new Mesh(boxGeometry, boxMaterial);
+            updateStatus('✓ Box mesh created');
+            
+            // Add to scene
+            scene.add(box);
+            updateStatus('✓ Box added to scene');
+            
+            // Animation
+            let rotation = 0;
+            let frameCount = 0;
+            
+            function animate() {
+                rotation += 0.02;
+                frameCount++;
+                
+                box.setRotation(rotation, rotation * 0.7, 0);
+                
+                renderer.render(scene, camera);
+                
+                if (frameCount === 1) {
+                    updateStatus('✓ Box rendered! You should see a rotating green box above.');
+                }
+                
+                requestAnimationFrame(animate);
+            }
+            
+            console.log('Starting animation...');
+            animate();
+            
+        } catch (error) {
+            updateStatus('✗ Error: ' + error.message, true);
+            console.error('Test 3 failed:', error);
+            console.error('Stack trace:', error.stack);
+        }
+    </script>
+</body>
+</html>

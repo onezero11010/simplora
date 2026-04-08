@@ -1,0 +1,31 @@
+{
+  "name": "simplora",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/simplora-webgl.umd.js",
+  "module": "./dist/simplora-webgl.es.js",
+  "types": "./dist/main.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/simplora-webgl.es.js",
+      "require": "./dist/simplora-webgl.umd.js",
+      "types": "./dist/main.d.ts"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:lib": "vite build",
+    "preview": "vite preview",
+    "test": "tsx src/tests/test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "tsx": "^4.19.2",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.4"
+  },
+  "dependencies": {
+    "terser": "^5.46.1"
+  }
+}

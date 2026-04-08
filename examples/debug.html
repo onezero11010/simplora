@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplora WebGL - Debug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-5 p-5 font-sans bg-gray-200">
+    <div id="debug-info" class="bg-white p-5 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4">Simplora WebGL Library Debug</h1>
+        <div id="results"></div>
+    </div>
+    
+    <script src="../dist/simplora-webgl.umd.js"></script>
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type === 'success' ? 'text-green-600' : type === 'error' ? 'text-red-600' : 'text-blue-600';
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+        
+        addResult('<h2>Library Loading Check</h2>');
+        
+        // Check if global variable exists
+        if (typeof SimploraWebGL !== 'undefined') {
+            addResult('✓ SimploraWebGL global variable exists', 'success');
+            
+            // List all exported properties
+            addResult('<h3>Exported Classes/Functions:</h3>');
+            const exports = Object.keys(SimploraWebGL);
+            if (exports.length > 0) {
+                exports.forEach(key => {
+                    const value = SimploraWebGL[key];
+                    const type = typeof value;
+                    addResult(`- ${key}: ${type}`, 'info');
+                });
+            } else {
+                addResult('No exports found!', 'error');
+            }
+            
+            // Check specific classes
+            addResult('<h3>Required Classes Check:</h3>');
+            const requiredClasses = ['WebGLRenderer', 'Camera', 'Scene', 'Mesh', 'BoxGeometry', 'SphereGeometry', 'BasicMaterial'];
+            requiredClasses.forEach(className => {
+                if (SimploraWebGL[className]) {
+                    addResult(`✓ ${className} exists`, 'success');
+                } else {
+                    addResult(`✗ ${className} NOT found`, 'error');
+                }
+            });
+            
+            // Try to create instances
+            addResult('<h3>Instance Creation Test:</h3>');
+            try {
+                if (SimploraWebGL.WebGLRenderer) {
+                    addResult('WebGLRenderer is a constructor: ' + (typeof SimploraWebGL.WebGLRenderer === 'function'), 'info');
+                }
+                if (SimploraWebGL.Camera) {
+                    addResult('Camera is a constructor: ' + (typeof SimploraWebGL.Camera === 'function'), 'info');
+                }
+            } catch (error) {
+                addResult('Error testing constructors: ' + error.message, 'error');
+            }
+            
+        } else {
+            addResult('✗ SimploraWebGL global variable NOT found', 'error');
+            addResult('The library file may not have loaded correctly.', 'error');
+        }
+        
+        // Check WebGL support
+        addResult('<h3>WebGL Support:</h3>');
+        try {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl');
+            if (gl) {
+                addResult('✓ WebGL is supported', 'success');
+            } else {
+                addResult('✗ WebGL is NOT supported', 'error');
+            }
+        } catch (error) {
+            addResult('Error checking WebGL: ' + error.message, 'error');
+        }
+    </script>
+</body>
+</html>

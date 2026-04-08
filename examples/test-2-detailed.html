@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test 2: Detailed Debug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-5 font-sans bg-gray-200">
+    <div id="info" class="bg-white p-4 rounded-lg mb-5">
+        <h2 class="text-xl font-bold mb-2">Test 2: Detailed Debug</h2>
+        <p class="text-gray-600 mb-2">Detailed step-by-step debugging of library rendering</p>
+        <div id="steps"></div>
+    </div>
+    <canvas id="canvas" width="800" height="600" class="border-2 border-gray-800 bg-black block"></canvas>
+    
+    <script src="../dist/simplora-webgl.umd.js"></script>
+    <script>
+        const stepsDiv = document.getElementById('steps');
+        
+        function addStep(message, status = 'pending') {
+            const div = document.createElement('div');
+            div.className = 'my-1.5 py-1.5 pl-2.5 border-l-3 border-gray-300 ' + (status === 'pass' ? 'border-l-green-500' : status === 'fail' ? 'border-l-red-500' : '');
+            div.innerHTML = message;
+            stepsDiv.appendChild(div);
+            console.log(message);
+            return div;
+        }
+        
+        console.log('=== Test 2: Detailed Debug ===');
+        
+        try {
+            addStep('Step 1: Checking library...', 'pending');
+            if (typeof SimploraWebGL === 'undefined') {
+                throw new Error('SimploraWebGL library not loaded');
+            }
+            addStep('✓ Library loaded successfully', 'pass');
+            
+            const { WebGLRenderer, Camera, Scene, Mesh, Geometry, BasicMaterial } = SimploraWebGL;
+            addStep('✓ Classes imported: ' + Object.keys({WebGLRenderer, Camera, Scene, Mesh, Geometry, BasicMaterial}).join(', '), 'pass');
+            
+            addStep('Step 2: Creating custom triangle geometry...', 'pending');
+            class TriangleGeometry extends Geometry {
+                constructor() {
+                    super();
+                    const vertices = [
+                         0.0,  0.5, 0.0,  // Top
+                        -0.5, -0.5, 0.0,  // Bottom Left
+                         0.5, -0.5, 0.0   // Bottom Right
+                    ];
+                    
+                    const normals = [
+                        0.0, 0.0, 1.0,
+                        0.0, 0.0, 1.0,
+                        0.0, 0.0, 1.0
+                    ];
+                    
+                    const indices = [0, 1, 2];
+                    
+                    this.setVertices(vertices);
+                    this.setNormals(normals);
+                    this.setIndices(indices);
+                    
+                    console.log('Geometry data:');
+                    console.log('  Vertices:', vertices);
+                    console.log('  Normals:', normals);
+                    console.log('  Indices:', indices);
+                }
+            }
+            const triangleGeometry = new TriangleGeometry();
+            addStep('✓ Triangle geometry created', 'pass');
+            addStep('  Vertices: ' + triangleGeometry.getVertices().length, 'pass');
+            addStep('  Normals: ' + triangleGeometry.getNormals().length, 'pass');
+            addStep('  Indices: ' + triangleGeometry.getIndices().length, 'pass');
+            
+            addStep('Step 3: Creating material...', 'pending');
+            const triangleMaterial = new BasicMaterial({
+                color: [1.0, 0.5, 0.0],
+                opacity: 1.0
+            });
+            addStep('✓ Material created', 'pass');
+            addStep('  Color: ' + triangleMaterial.getColor(), 'pass');
+            addStep('  Opacity: ' + triangleMaterial.getOpacity(), 'pass');
+            
+            addStep('Step 4: Creating mesh...', 'pending');
+            const triangle = new Mesh(triangleGeometry, triangleMaterial);
+            addStep('✓ Mesh created', 'pass');
+            
+            addStep('Step 5: Creating renderer...', 'pending');
+            const canvas = document.getElementById('canvas');
+            const renderer = new WebGLRenderer(canvas);
+            addStep('✓ Renderer created', 'pass');
+            
+            const gl = renderer.getGL();
+            addStep('✓ WebGL context obtained', 'pass');
+            addStep('  Canvas size: ' + canvas.width + 'x' + canvas.height, 'pass');
+            addStep('  WebGL viewport: ' + gl.getParameter(gl.VIEWPORT).join(', '), 'pass');
+            
+            addStep('Step 6: Creating camera...', 'pending');
+            const camera = new Camera(Math.PI / 4, 800 / 600, 0.1, 100);
+            camera.setPosition(0, 0, 2);
+            addStep('✓ Camera created and positioned', 'pass');
+            
+            addStep('Step 7: Creating scene...', 'pending');
+            const scene = new Scene();
+            addStep('✓ Scene created', 'pass');
+            
+            addStep('Step 8: Adding mesh to scene...', 'pending');
+            scene.add(triangle);
+            addStep('✓ Mesh added to scene', 'pass');
+            addStep('  Scene mesh count: ' + scene.getMeshes().length, 'pass');
+            
+            addStep('Step 9: Rendering scene...', 'pending');
+            console.log('About to render...');
+            
+            // Check WebGL state before render
+            addStep('  WebGL state before render:', 'pass');
+            addStep('    Clear color: ' + gl.getParameter(gl.COLOR_CLEAR_VALUE).map(v => v.toFixed(2)), 'pass');
+            addStep('    Depth test enabled: ' + gl.getParameter(gl.DEPTH_TEST), 'pass');
+            addStep('    Cull face enabled: ' + gl.getParameter(gl.CULL_FACE), 'pass');
+            
+            // Render
+            try {
+                renderer.render(scene, camera);
+                addStep('✓ Render completed', 'pass');
+                
+                // Check WebGL state after render
+                const glError = gl.getError();
+                addStep('  WebGL error after render: ' + (glError === 0 ? 'NO_ERROR' : 'Error ' + glError), glError === 0 ? 'pass' : 'fail');
+                
+            } catch (renderError) {
+                addStep('✗ Render failed: ' + renderError.message, 'fail');
+                console.error('Render error:', renderError);
+                console.error('Stack:', renderError.stack);
+                throw renderError;
+            }
+            
+            addStep('Step 10: Final check...', 'pending');
+            
+            // Try to read pixel data to see if anything was rendered
+            const pixels = new Uint8Array(canvas.width * canvas.height * 4);
+            gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            
+            // Check if any non-black pixels exist
+            let hasNonBlack = false;
+            for (let i = 0; i < pixels.length; i += 4) {
+                if (pixels[i] > 0 || pixels[i+1] > 0 || pixels[i+2] > 0) {
+                    hasNonBlack = true;
+                    break;
+                }
+            }
+            
+            if (hasNonBlack) {
+                addStep('✓ Non-black pixels detected - rendering appears successful!', 'pass');
+            } else {
+                addStep('✗ Only black pixels detected - nothing was rendered', 'fail');
+            }
+            
+            addStep('=== Test Complete ===', 'pass');
+            
+        } catch (error) {
+            addStep('✗ Error: ' + error.message, 'fail');
+            console.error('Test failed:', error);
+            console.error('Stack trace:', error.stack);
+        }
+    </script>
+</body>
+</html>

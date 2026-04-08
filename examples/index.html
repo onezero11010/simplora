@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplora WebGL Examples</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 h-screen overflow-hidden">
+    <div class="flex h-screen">
+        <div class="w-80 bg-white border-r border-gray-200 flex flex-col overflow-y-auto">
+            <div class="p-5 bg-green-500 text-white sticky top-0 z-10">
+                <h1 class="text-xl font-bold mb-1">🧪 Simplora Examples</h1>
+                <p class="text-xs opacity-90">Click to view examples</p>
+            </div>
+            <ul class="list-none p-2.5" id="fileList">
+            </ul>
+        </div>
+        <div class="flex-1 flex flex-col">
+            <div class="px-5 py-4 bg-white border-b border-gray-200 flex justify-between items-center">
+                <span class="text-lg font-bold text-gray-800" id="contentTitle">Select an example</span>
+                <a href="#" class="px-4 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors duration-300" id="openNewTab" style="display: none;">Open in New Tab</a>
+            </div>
+            <div class="flex-1 overflow-hidden">
+                <iframe id="contentFrame" src="" class="w-full h-full border-0"></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const files = [
+            {
+                name: 'composite-geometry-demo.html',
+                title: '🏗️ Composite Geometry Demo',
+                description: 'Interactive demo showcasing 30+ composite geometries including buildings, industrial equipment, and complex objects. Demonstrates Simplora WebGL\'s powerful geometry composition capabilities.'
+            },
+            {
+                name: 'test-1-basic-webgl.html',
+                title: 'Test 1: Basic WebGL Triangle',
+                description: 'Renders a simple colored triangle using pure WebGL (no library). Tests if WebGL is working on your system.'
+            },
+            {
+                name: 'test-2-simple-mesh.html',
+                title: 'Test 2: Simple Triangle with Library',
+                description: 'Renders a simple triangle using Simplora WebGL library. Tests if library\'s basic rendering works.'
+            },
+            {
+                name: 'test-3-simple-box.html',
+                title: 'Test 3: Simple Box with Library',
+                description: 'Renders a rotating box using Simplora WebGL library. Tests if library\'s geometry and animation work.'
+            },
+            {
+                name: 'library-usage.html',
+                title: 'Test 4: Original Library Usage',
+                description: 'The original example with box and sphere. Tests full functionality.'
+            },
+            {
+                name: 'test-2-detailed.html',
+                title: 'Test 2: Detailed Version',
+                description: 'Detailed version of simple mesh test with additional features.'
+            },
+            {
+                name: 'test-final-debug.html',
+                title: 'Test: Final Debug',
+                description: 'Final debugging test with comprehensive error checking.'
+            },
+            {
+                name: 'debug.html',
+                title: 'Debug Page',
+                description: 'Debug page for troubleshooting and testing.'
+            }
+        ];
+
+        const fileList = document.getElementById('fileList');
+        const contentFrame = document.getElementById('contentFrame');
+        const contentTitle = document.getElementById('contentTitle');
+        const openNewTab = document.getElementById('openNewTab');
+        let currentFile = null;
+
+        files.forEach((file, index) => {
+            const li = document.createElement('li');
+            li.className = 'px-5 py-4 cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-all duration-200';
+            li.innerHTML = `
+                <div class="font-bold text-gray-800 mb-1">${file.title}</div>
+                <div class="text-xs text-gray-600">${file.description}</div>
+            `;
+            li.addEventListener('click', () => {
+                selectFile(file, li);
+            });
+            fileList.appendChild(li);
+        });
+
+        function selectFile(file, element) {
+            document.querySelectorAll('#fileList li').forEach(item => {
+                item.classList.remove('bg-green-50', 'border-l-4', 'border-green-500');
+            });
+            element.classList.add('bg-green-50', 'border-l-4', 'border-green-500');
+            
+            currentFile = file;
+            contentFrame.src = file.name;
+            contentTitle.textContent = file.title;
+            openNewTab.href = file.name;
+            openNewTab.style.display = 'inline-block';
+        }
+
+        contentFrame.src = 'about:blank';
+    </script>
+</body>
+</html>

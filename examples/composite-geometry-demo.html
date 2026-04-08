@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplora WebGL - 组合几何体演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 font-sans flex flex-col items-center p-5">
+    <h1 class="text-white text-3xl font-bold mb-5 drop-shadow-lg">🏗️ Simplora WebGL - 组合几何体演示</h1>
+    
+    <div class="flex gap-5 w-full max-w-[1400px]">
+        <div class="flex-1 bg-white/95 rounded-xl p-5 shadow-2xl">
+            <canvas id="canvas" class="w-full h-[600px] rounded-lg bg-gradient-to-b from-[#1a1a2e] to-[#16213e]"></canvas>
+        </div>
+        
+        <div class="w-[300px] bg-white/95 rounded-xl p-5 shadow-2xl max-h-[640px] overflow-y-auto">
+            <div class="mb-5">
+                <h3 class="text-gray-800 text-base font-semibold mb-2.5 pb-1.5 border-b-2 border-indigo-500">🏠 建筑块</h3>
+                <button onclick="showHouse()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">房子</button>
+                <button onclick="showBuilding()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">多层建筑</button>
+                <button onclick="showWall()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">砖墙</button>
+                <button onclick="showColumn()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">罗马柱</button>
+                <button onclick="showTower()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">塔楼</button>
+                <button onclick="showBridge()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">桥梁</button>
+                <button onclick="showGate()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">大门</button>
+            </div>
+            
+            <div class="mb-5">
+                <h3 class="text-gray-800 text-base font-semibold mb-2.5 pb-1.5 border-b-2 border-indigo-500">⚙️ 工业设备</h3>
+                <button onclick="showServer()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">服务器机柜</button>
+                <button onclick="showMonitor()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">显示器</button>
+                <button onclick="showKeyboard()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">键盘</button>
+                <button onclick="showCamera()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">摄像头</button>
+                <button onclick="showSensor()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">传感器</button>
+                <button onclick="showPipe()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">管道</button>
+                <button onclick="showValve()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">阀门</button>
+                <button onclick="showTank()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">储罐</button>
+                <button onclick="showPump()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">泵</button>
+                <button onclick="showFan()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">风扇</button>
+                <button onclick="showRobotArm()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">机械臂</button>
+            </div>
+            
+            <div class="mb-5">
+                <h3 class="text-gray-800 text-base font-semibold mb-2.5 pb-1.5 border-b-2 border-indigo-500">🎨 复合物体</h3>
+                <button onclick="showCar()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">汽车</button>
+                <button onclick="showTree()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">树木</button>
+                <button onclick="showLamp()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">路灯</button>
+                <button onclick="showTable()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">桌子</button>
+                <button onclick="showChair()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">椅子</button>
+                <button onclick="showFountain()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">喷泉</button>
+                <button onclick="showStatue()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">雕像</button>
+                <button onclick="showWindmill()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">风车</button>
+                <button onclick="showSatellite()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">卫星</button>
+                <button onclick="showRocket()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">火箭</button>
+            </div>
+            
+            <div class="mb-5">
+                <h3 class="text-gray-800 text-base font-semibold mb-2.5 pb-1.5 border-b-2 border-indigo-500">🎯 自定义组合</h3>
+                <button onclick="showCustomGroup()" class="w-full py-2.5 mb-2 border-none rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white cursor-pointer text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/40 active:translate-y-0">自定义组合</button>
+            </div>
+            
+            <div class="bg-blue-50 p-4 rounded-lg mt-5 border-l-4 border-indigo-500">
+                <h4 class="text-gray-800 font-semibold mb-2">💡 使用说明</h4>
+                <p class="text-gray-600 text-sm leading-relaxed">点击上方按钮可以查看不同的组合几何体。所有几何体都由基础几何体组合而成，展示了 Simplora WebGL 强大的组合能力。</p>
+            </div>
+            
+            <div class="bg-green-50 p-2.5 rounded-md mt-2.5 text-xs text-green-800" id="stats">
+                <span class="font-semibold">当前对象:</span> <span id="currentObject">无</span><br>
+                <span class="font-semibold">顶点数:</span> <span id="vertexCount">0</span><br>
+                <span class="font-semibold">面数:</span> <span id="faceCount">0</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { 
+            WebGLRenderer, 
+            Scene, 
+            Camera, 
+            Mesh, 
+            BasicMaterial,
+            BoxGeometry,
+            SphereGeometry,
+            CylinderGeometry,
+            ConeGeometry,
+            PlaneGeometry,
+            GroupGeometry,
+            BuildingBlockGeometry,
+            EquipmentGeometry,
+            CompositeGeometry
+        } from '../dist/simplora-webgl.es.js';
+
+        let canvas, renderer, scene, camera;
+        let currentMesh = null;
+        let rotation = 0;
+        
+        function updateStats(mesh) {
+            const geometry = mesh.getGeometry();
+            const vertices = geometry.getVertices();
+            const indices = geometry.getIndices();
+            
+            document.getElementById('vertexCount').textContent = vertices.length / 3;
+            document.getElementById('faceCount').textContent = indices.length / 3;
+        }
+        
+        function clearScene() {
+            if (currentMesh) {
+                scene.remove(currentMesh);
+            }
+        }
+        
+        function addMesh(geometry, name) {
+            clearScene();
+            
+            const colorValue = Math.random() * 0xffffff;
+            const r = ((colorValue >> 16) & 255) / 255;
+            const g = ((colorValue >> 8) & 255) / 255;
+            const b = (colorValue & 255) / 255;
+            
+            const material = new BasicMaterial({ 
+                color: [r, g, b],
+                opacity: 1.0
+            });
+            
+            currentMesh = new Mesh(geometry, material);
+            scene.add(currentMesh);
+            
+            document.getElementById('currentObject').textContent = name;
+            updateStats(currentMesh);
+        }
+        
+        window.showHouse = function() {
+            const geometry = BuildingBlockGeometry.createHouse(2, 2, 2, 1);
+            addMesh(geometry, '房子');
+        };
+        
+        window.showBuilding = function() {
+            const geometry = BuildingBlockGeometry.createBuilding(3, 5, 3, 3);
+            addMesh(geometry, '多层建筑');
+        };
+        
+        window.showWall = function() {
+            const geometry = BuildingBlockGeometry.createWall(5, 2, 0.2);
+            addMesh(geometry, '砖墙');
+        };
+        
+        window.showColumn = function() {
+            const geometry = BuildingBlockGeometry.createColumn(0.3, 3, 0.3, 0.3);
+            addMesh(geometry, '罗马柱');
+        };
+        
+        window.showTower = function() {
+            const geometry = BuildingBlockGeometry.createTower(2, 6, 8);
+            addMesh(geometry, '塔楼');
+        };
+        
+        window.showBridge = function() {
+            const geometry = BuildingBlockGeometry.createBridge(8, 2, 3);
+            addMesh(geometry, '桥梁');
+        };
+        
+        window.showGate = function() {
+            const geometry = BuildingBlockGeometry.createGate(3, 4, 0.5);
+            addMesh(geometry, '大门');
+        };
+        
+        window.showServer = function() {
+            const geometry = EquipmentGeometry.createServer(1, 2, 0.6, 4);
+            addMesh(geometry, '服务器机柜');
+        };
+        
+        window.showMonitor = function() {
+            const geometry = EquipmentGeometry.createMonitor(2, 1.2, 0.1, 0.5);
+            addMesh(geometry, '显示器');
+        };
+        
+        window.showKeyboard = function() {
+            const geometry = EquipmentGeometry.createKeyboard(1.5, 0.05, 0.6);
+            addMesh(geometry, '键盘');
+        };
+        
+        window.showCamera = function() {
+            const geometry = EquipmentGeometry.createCamera(0.3, 0.8);
+            addMesh(geometry, '摄像头');
+        };
+        
+        window.showSensor = function() {
+            const geometry = EquipmentGeometry.createSensor(0.2, 0.5);
+            addMesh(geometry, '传感器');
+        };
+        
+        window.showPipe = function() {
+            const geometry = EquipmentGeometry.createPipe(0.1, 5, 3);
+            addMesh(geometry, '管道');
+        };
+        
+        window.showValve = function() {
+            const geometry = EquipmentGeometry.createValve(0.3, 0.5);
+            addMesh(geometry, '阀门');
+        };
+        
+        window.showTank = function() {
+            const geometry = EquipmentGeometry.createTank(1, 2);
+            addMesh(geometry, '储罐');
+        };
+        
+        window.showPump = function() {
+            const geometry = EquipmentGeometry.createPump(0.5, 0.8);
+            addMesh(geometry, '泵');
+        };
+        
+        window.showFan = function() {
+            const geometry = EquipmentGeometry.createFan(0.5, 0.3);
+            addMesh(geometry, '风扇');
+        };
+        
+        window.showRobotArm = function() {
+            const geometry = EquipmentGeometry.createRobotArm(0.5, 2, 3);
+            addMesh(geometry, '机械臂');
+        };
+        
+        window.showCar = function() {
+            const geometry = CompositeGeometry.createCar(2, 4, 1.2);
+            addMesh(geometry, '汽车');
+        };
+        
+        window.showTree = function() {
+            const geometry = CompositeGeometry.createTree(0.2, 2, 1);
+            addMesh(geometry, '树木');
+        };
+        
+        window.showLamp = function() {
+            const geometry = CompositeGeometry.createLamp(0.3, 2);
+            addMesh(geometry, '路灯');
+        };
+        
+        window.showTable = function() {
+            const geometry = CompositeGeometry.createTable(2, 1, 1);
+            addMesh(geometry, '桌子');
+        };
+        
+        window.showChair = function() {
+            const geometry = CompositeGeometry.createChair(0.6, 1, 0.6);
+            addMesh(geometry, '椅子');
+        };
+        
+        window.showFountain = function() {
+            const geometry = CompositeGeometry.createFountain(2, 1);
+            addMesh(geometry, '喷泉');
+        };
+        
+        window.showStatue = function() {
+            const geometry = CompositeGeometry.createStatue(0.5, 3);
+            addMesh(geometry, '雕像');
+        };
+        
+        window.showWindmill = function() {
+            const geometry = CompositeGeometry.createWindmill(1, 4);
+            addMesh(geometry, '风车');
+        };
+        
+        window.showSatellite = function() {
+            const geometry = CompositeGeometry.createSatellite(0.5);
+            addMesh(geometry, '卫星');
+        };
+        
+        window.showRocket = function() {
+            const geometry = CompositeGeometry.createRocket(0.5, 3);
+            addMesh(geometry, '火箭');
+        };
+        
+        window.showCustomGroup = function() {
+            const group = new GroupGeometry();
+            
+            group.add(new BoxGeometry(1, 1, 1), [0, 0, 0]);
+            group.add(new SphereGeometry(0.5, 16, 8), [0, 1, 0]);
+            group.add(new CylinderGeometry(0.2, 0.2, 2, 8), [0, 0, 0], [Math.PI / 2, 0, 0]);
+            group.add(new ConeGeometry(0.3, 0.5, 8), [0, -0.75, 0]);
+            
+            addMesh(group, '自定义组合');
+        };
+        
+        function animate() {
+            rotation += 0.01;
+            
+            if (currentMesh) {
+                currentMesh.setRotation(0, rotation, 0);
+            }
+            
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        
+        function init() {
+            canvas = document.getElementById('canvas');
+            
+            const rect = canvas.getBoundingClientRect();
+            renderer = new WebGLRenderer(canvas);
+            renderer.setSize(rect.width, rect.height);
+            
+            scene = new Scene();
+            camera = new Camera(70, rect.width / rect.height, 0.1, 1000);
+            
+            camera.setPosition(0, 1, 12);
+            camera.setTarget(0, 0, 0);
+            
+            showHouse();
+            animate();
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

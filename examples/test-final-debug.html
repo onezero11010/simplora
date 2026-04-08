@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Final Debug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-5 font-sans bg-gray-200">
+    <div id="info" class="bg-white p-4 rounded-lg mb-5">
+        <h2 class="text-xl font-bold mb-2">Test Final Debug - Native WebGL vs Shader Class</h2>
+        <p class="text-gray-600 mb-2">Direct comparison between native WebGL and Shader class</p>
+        <div id="steps"></div>
+    </div>
+    <div class="flex gap-5">
+        <div class="text-center">
+            <h3 class="text-lg font-bold mb-2">Native WebGL</h3>
+            <canvas id="canvas1" width="400" height="400" class="border-2 border-gray-800 bg-black block"></canvas>
+        </div>
+        <div class="text-center">
+            <h3 class="text-lg font-bold mb-2">Shader Class</h3>
+            <canvas id="canvas2" width="400" height="400" class="border-2 border-gray-800 bg-black block"></canvas>
+        </div>
+    </div>
+    
+    <script src="../dist/simplora-webgl.umd.js"></script>
+    <script>
+        const stepsDiv = document.getElementById('steps');
+        
+        function addStep(message, status = 'pending') {
+            const div = document.createElement('div');
+            div.className = 'my-1.5 py-1.5 pl-2.5 border-l-3 border-gray-300 ' + (status === 'pass' ? 'border-l-green-500' : status === 'fail' ? 'border-l-red-500' : '');
+            div.innerHTML = message;
+            stepsDiv.appendChild(div);
+            console.log(message);
+            return div;
+        }
+        
+        console.log('=== Test Final Debug ===');
+        
+        const vertexShaderSource = `
+            attribute vec3 aPosition;
+            attribute vec3 aNormal;
+            
+            uniform mat4 uModelMatrix;
+            uniform mat4 uViewMatrix;
+            uniform mat4 uProjectionMatrix;
+            
+            varying vec3 vNormal;
+            
+            void main() {
+                gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
+                vNormal = aNormal;
+            }
+        `;
+        
+        const fragmentShaderSource = `
+            precision mediump float;
+            
+            uniform vec3 uColor;
+            uniform float uOpacity;
+            
+            varying vec3 vNormal;
+            
+            void main() {
+                vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+                float diff = max(dot(normalize(vNormal), lightDir), 0.0);
+                vec3 lighting = uColor * (0.3 + 0.7 * diff);
+                gl_FragColor = vec4(lighting, uOpacity);
+            }
+        `;
+        
+        const vertices = new Float32Array([
+             0.0,  0.5, 0.0,
+            -0.5, -0.5, 0.0,
+             0.5, -0.5, 0.0
+        ]);
+        
+        const normals = new Float32Array([
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0
+        ]);
+        
+        const indices = [0, 1, 2];
+        
+        // Test 1: Native WebGL
+        addStep('Test 1: Native WebGL...', 'pending');
+        
+        const canvas1 = document.getElementById('canvas1');
+        const gl1 = canvas1.getContext('webgl');
+        gl1.viewport(0, 0, canvas1.width, canvas1.height);
+        gl1.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl1.clear(gl1.COLOR_BUFFER_BIT);
+        
+        function createNativeShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                const error = gl.getShaderInfoLog(shader);
+                throw new Error('Shader compile error: ' + error);
+            }
+            return shader;
+        }
+        
+        function createNativeProgram(gl, vertexSource, fragmentSource) {
+            const vertexShader = createNativeShader(gl, gl.VERTEX_SHADER, vertexSource);
+            const fragmentShader = createNativeShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                const error = gl.getProgramInfoLog(program);
+                throw new Error('Program link error: ' + error);
+            }
+            gl.deleteShader(vertexShader);
+            gl.deleteShader(fragmentShader);
+            return program;
+        }
+        
+        const program1 = createNativeProgram(gl1, vertexShaderSource, fragmentShaderSource);
+        gl1.useProgram(program1);
+        
+        const posLoc1 = gl1.getAttribLocation(program1, 'aPosition');
+        const normLoc1 = gl1.getAttribLocation(program1, 'aNormal');
+        
+        addStep('  Native WebGL - aPosition: ' + posLoc1, posLoc1 >= 0 ? 'pass' : 'fail');
+        addStep('  Native WebGL - aNormal: ' + normLoc1, normLoc1 >= 0 ? 'pass' : 'fail');
+        
+        const positionBuffer1 = gl1.createBuffer();
+        gl1.bindBuffer(gl1.ARRAY_BUFFER, positionBuffer1);
+        gl1.bufferData(gl1.ARRAY_BUFFER, vertices, gl1.STATIC_DRAW);
+        
+        const normalBuffer1 = gl1.createBuffer();
+        gl1.bindBuffer(gl1.ARRAY_BUFFER, normalBuffer1);
+        gl1.bufferData(gl1.ARRAY_BUFFER, normals, gl1.STATIC_DRAW);
+        
+        const indexBuffer1 = gl1.createBuffer();
+        gl1.bindBuffer(gl1.ELEMENT_ARRAY_BUFFER, indexBuffer1);
+        gl1.bufferData(gl1.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl1.STATIC_DRAW);
+        
+        gl1.bindBuffer(gl1.ARRAY_BUFFER, positionBuffer1);
+        gl1.enableVertexAttribArray(posLoc1);
+        gl1.vertexAttribPointer(posLoc1, 3, gl1.FLOAT, false, 0, 0);
+        
+        gl1.bindBuffer(gl1.ARRAY_BUFFER, normalBuffer1);
+        gl1.enableVertexAttribArray(normLoc1);
+        gl1.vertexAttribPointer(normLoc1, 3, gl1.FLOAT, false, 0, 0);
+        
+        const identityMatrix = new Float32Array([
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        ]);
+        
+        const modelLoc1 = gl1.getUniformLocation(program1, 'uModelMatrix');
+        const viewLoc1 = gl1.getUniformLocation(program1, 'uViewMatrix');
+        const projLoc1 = gl1.getUniformLocation(program1, 'uProjectionMatrix');
+        const colorLoc1 = gl1.getUniformLocation(program1, 'uColor');
+        const opacityLoc1 = gl1.getUniformLocation(program1, 'uOpacity');
+        
+        gl1.uniformMatrix4fv(modelLoc1, false, identityMatrix);
+        gl1.uniformMatrix4fv(viewLoc1, false, identityMatrix);
+        gl1.uniformMatrix4fv(projLoc1, false, identityMatrix);
+        gl1.uniform3f(colorLoc1, 1.0, 0.5, 0.0);
+        gl1.uniform1f(opacityLoc1, 1.0);
+        
+        gl1.drawElements(gl1.TRIANGLES, indices.length, gl1.UNSIGNED_SHORT, 0);
+        
+        const pixels1 = new Uint8Array(canvas1.width * canvas1.height * 4);
+        gl1.readPixels(0, 0, canvas1.width, canvas1.height, gl1.RGBA, gl1.UNSIGNED_BYTE, pixels1);
+        let hasColor1 = false;
+        for (let i = 0; i < pixels1.length; i += 4) {
+            if (pixels1[i] > 0 || pixels1[i+1] > 0 || pixels1[i+2] > 0) {
+                hasColor1 = true;
+                break;
+            }
+        }
+        addStep('  Native WebGL result: ' + (hasColor1 ? '✓ Color' : '✗ Black'), hasColor1 ? 'pass' : 'fail');
+        
+        // Test 2: Shader class
+        addStep('Test 2: Shader class...', 'pending');
+        
+        const canvas2 = document.getElementById('canvas2');
+        const gl2 = canvas2.getContext('webgl');
+        gl2.viewport(0, 0, canvas2.width, canvas2.height);
+        gl2.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl2.clear(gl2.COLOR_BUFFER_BIT);
+        
+        const { Shader } = SimploraWebGL;
+        const shader = new Shader(gl2, vertexShaderSource, fragmentShaderSource);
+        shader.use();
+        
+        const posLoc2 = shader.getAttribLocation('aPosition');
+        const normLoc2 = shader.getAttribLocation('aNormal');
+        
+        addStep('  Shader class - aPosition: ' + posLoc2, posLoc2 >= 0 ? 'pass' : 'fail');
+        addStep('  Shader class - aNormal: ' + normLoc2, normLoc2 >= 0 ? 'pass' : 'fail');
+        
+        const positionBuffer2 = gl2.createBuffer();
+        gl2.bindBuffer(gl2.ARRAY_BUFFER, positionBuffer2);
+        gl2.bufferData(gl2.ARRAY_BUFFER, vertices, gl2.STATIC_DRAW);
+        
+        const normalBuffer2 = gl2.createBuffer();
+        gl2.bindBuffer(gl2.ARRAY_BUFFER, normalBuffer2);
+        gl2.bufferData(gl2.ARRAY_BUFFER, normals, gl2.STATIC_DRAW);
+        
+        const indexBuffer2 = gl2.createBuffer();
+        gl2.bindBuffer(gl2.ELEMENT_ARRAY_BUFFER, indexBuffer2);
+        gl2.bufferData(gl2.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl2.STATIC_DRAW);
+        
+        gl2.bindBuffer(gl2.ARRAY_BUFFER, positionBuffer2);
+        gl2.enableVertexAttribArray(posLoc2);
+        gl2.vertexAttribPointer(posLoc2, 3, gl2.FLOAT, false, 0, 0);
+        
+        gl2.bindBuffer(gl2.ARRAY_BUFFER, normalBuffer2);
+        gl2.enableVertexAttribArray(normLoc2);
+        gl2.vertexAttribPointer(normLoc2, 3, gl2.FLOAT, false, 0, 0);
+        
+        const modelLoc2 = shader.getUniformLocation('uModelMatrix');
+        const viewLoc2 = shader.getUniformLocation('uViewMatrix');
+        const projLoc2 = shader.getUniformLocation('uProjectionMatrix');
+        const colorLoc2 = shader.getUniformLocation('uColor');
+        const opacityLoc2 = shader.getUniformLocation('uOpacity');
+        
+        shader.setMatrix4('uModelMatrix', identityMatrix);
+        shader.setMatrix4('uViewMatrix', identityMatrix);
+        shader.setMatrix4('uProjectionMatrix', identityMatrix);
+        shader.setVec3('uColor', [1.0, 0.5, 0.0]);
+        shader.setFloat('uOpacity', 1.0);
+        
+        gl2.drawElements(gl2.TRIANGLES, indices.length, gl2.UNSIGNED_SHORT, 0);
+        
+        const pixels2 = new Uint8Array(canvas2.width * canvas2.height * 4);
+        gl2.readPixels(0, 0, canvas2.width, canvas2.height, gl2.RGBA, gl2.UNSIGNED_BYTE, pixels2);
+        let hasColor2 = false;
+        for (let i = 0; i < pixels2.length; i += 4) {
+            if (pixels2[i] > 0 || pixels2[i+1] > 0 || pixels2[i+2] > 0) {
+                hasColor2 = true;
+                break;
+            }
+        }
+        addStep('  Shader class result: ' + (hasColor2 ? '✓ Color' : '✗ Black'), hasColor2 ? 'pass' : 'fail');
+        
+        // Diagnosis
+        addStep('=== Diagnosis ===', 'pass');
+        
+        if (hasColor1 && !hasColor2) {
+            addStep('✗ Native WebGL works but Shader class fails!', 'fail');
+            addStep('Problem is definitely in Shader class implementation', 'warning');
+        } else if (!hasColor1 && hasColor2) {
+            addStep('✓ Shader class works but native WebGL fails!', 'pass');
+        } else if (hasColor1 && hasColor2) {
+            addStep('✓ Both work! Shader class is fixed!', 'pass');
+        } else {
+            addStep('✗ Both fail - WebGL issue', 'fail');
+        }
+        
+    </script>
+</body>
+</html>

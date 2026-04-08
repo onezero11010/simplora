@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplora WebGL - Library Usage Example</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-0 overflow-hidden bg-black font-sans">
+    <div id="info" class="absolute top-2.5 left-2.5 text-white bg-black bg-opacity-70 p-2.5 rounded-lg">
+        <h3 class="text-lg font-bold mb-1">Simplora WebGL - Library Usage</h3>
+        <p class="text-sm">Using built library file</p>
+    </div>
+    <canvas id="canvas" class="block"></canvas>
+    <script src="../dist/simplora-webgl.umd.js"></script>
+    <script>
+        console.log('=== Simplora WebGL Debug ===');
+        
+        // Access the library through the global variable
+        const { WebGLRenderer, Camera, Scene, Mesh, BoxGeometry, SphereGeometry, BasicMaterial } = SimploraWebGL;
+        console.log('✓ Classes imported successfully');
+        
+        const canvas = document.getElementById('canvas');
+        console.log('✓ Canvas element:', canvas);
+        console.log('  Canvas dimensions:', canvas.width, 'x', canvas.height);
+        console.log('  Canvas CSS size:', canvas.offsetWidth, 'x', canvas.offsetHeight);
+        console.log('  Canvas position:', canvas.offsetLeft, 'x', canvas.offsetTop);
+        console.log('  Canvas display:', window.getComputedStyle(canvas).display);
+        console.log('  Canvas visibility:', window.getComputedStyle(canvas).visibility);
+        
+        const renderer = new WebGLRenderer(canvas);
+        console.log('✓ Renderer created');
+        const gl = renderer.getGL();
+        console.log('✓ WebGL context obtained:', gl);
+        console.log('  WebGL viewport:', gl.getParameter(gl.VIEWPORT));
+        console.log('  WebGL clear color:', gl.getParameter(gl.COLOR_CLEAR_VALUE));
+        console.log('  WebGL depth test enabled:', gl.getParameter(gl.DEPTH_TEST));
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        console.log('✓ Renderer size set to:', window.innerWidth, 'x', window.innerHeight);
+        console.log('  Canvas dimensions after setSize:', canvas.width, 'x', canvas.height);
+        console.log('  WebGL viewport after setSize:', gl.getParameter(gl.VIEWPORT));
+        
+        const camera = new Camera(
+            Math.PI / 4,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            100
+        );
+        camera.setPosition(0, 2, 5);
+        console.log('✓ Camera created and positioned');
+        
+        const scene = new Scene();
+        console.log('✓ Scene created');
+        
+        const boxGeometry = new BoxGeometry(1, 1, 1);
+        console.log('✓ BoxGeometry created');
+        const boxMaterial = new BasicMaterial({
+            color: [1.0, 0.3, 0.3],
+            opacity: 1.0
+        });
+        console.log('✓ BoxMaterial created');
+        const box = new Mesh(boxGeometry, boxMaterial);
+        console.log('✓ Box mesh created');
+        box.setPosition(-1.5, 0, 0);
+        console.log('✓ Box positioned at (-1.5, 0, 0)');
+        scene.add(box);
+        console.log('✓ Box added to scene');
+        
+        const sphereGeometry = new SphereGeometry(0.7, 32, 16);
+        console.log('✓ SphereGeometry created');
+        const sphereMaterial = new BasicMaterial({
+            color: [0.3, 0.3, 1.0],
+            opacity: 1.0
+        });
+        console.log('✓ SphereMaterial created');
+        const sphere = new Mesh(sphereGeometry, sphereMaterial);
+        console.log('✓ Sphere mesh created');
+        sphere.setPosition(1.5, 0, 0);
+        console.log('✓ Sphere positioned at (1.5, 0, 0)');
+        scene.add(sphere);
+        console.log('✓ Sphere added to scene');
+        
+        console.log('Scene meshes count:', scene.getMeshes().length);
+        
+        let rotation = 0;
+        let frameCount = 0;
+        
+        function animate() {
+            rotation += 0.01;
+            frameCount++;
+            
+            if (frameCount % 60 === 0) {
+                console.log('Frame', frameCount, '- Rotation:', rotation.toFixed(2));
+                console.log('  Canvas visible:', canvas.offsetWidth > 0 && canvas.offsetHeight > 0);
+                console.log('  Canvas in viewport:', canvas.getBoundingClientRect());
+            }
+            
+            box.setRotation(rotation, rotation * 0.7, 0);
+            sphere.setRotation(rotation * 0.5, rotation, 0);
+            
+            try {
+                renderer.render(scene, camera);
+                if (frameCount === 1) {
+                    console.log('✓ First render completed');
+                    const gl = renderer.getGL();
+                    console.log('  WebGL error after render:', gl.getError());
+                }
+            } catch (error) {
+                console.error('Render error:', error);
+                console.error('Error stack:', error.stack);
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        window.addEventListener('resize', () => {
+            console.log('Window resized to:', window.innerWidth, 'x', window.innerHeight);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+        
+        console.log('Starting animation loop...');
+        animate();
+    </script>
+</body>
+</html>

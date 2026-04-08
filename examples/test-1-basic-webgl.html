@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test 1: Basic WebGL Triangle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-5 font-sans bg-gray-200">
+    <div id="info" class="bg-white p-4 rounded-lg mb-5">
+        <h2 class="text-xl font-bold mb-2">Test 1: Basic WebGL Triangle</h2>
+        <p class="text-gray-600 mb-2">This test renders a simple colored triangle using pure WebGL (no library).</p>
+        <p id="status" class="text-green-600">Initializing...</p>
+    </div>
+    <canvas id="canvas" width="800" height="600" class="border-2 border-gray-800 bg-black block"></canvas>
+    
+    <script>
+        const status = document.getElementById('status');
+        
+        function updateStatus(message, isError = false) {
+            status.innerHTML = message;
+            status.className = isError ? 'text-red-600' : 'text-green-600';
+            console.log(message);
+        }
+        
+        try {
+            const canvas = document.getElementById('canvas');
+            updateStatus('✓ Canvas element found');
+            
+            const gl = canvas.getContext('webgl');
+            if (!gl) {
+                updateStatus('✗ WebGL not supported', true);
+                throw new Error('WebGL not supported');
+            }
+            updateStatus('✓ WebGL context obtained');
+            
+            // Simple vertex shader
+            const vertexShaderSource = `
+                attribute vec2 aPosition;
+                attribute vec3 aColor;
+                varying vec3 vColor;
+                void main() {
+                    gl_Position = vec4(aPosition, 0.0, 1.0);
+                    vColor = aColor;
+                }
+            `;
+            
+            // Simple fragment shader
+            const fragmentShaderSource = `
+                precision mediump float;
+                varying vec3 vColor;
+                void main() {
+                    gl_FragColor = vec4(vColor, 1.0);
+                }
+            `;
+            updateStatus('✓ Shaders defined');
+            
+            // Create shaders
+            function createShader(type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    const error = gl.getShaderInfoLog(shader);
+                    gl.deleteShader(shader);
+                    throw new Error('Shader compile error: ' + error);
+                }
+                return shader;
+            }
+            
+            const vertexShader = createShader(gl.VERTEX_SHADER, vertexShaderSource);
+            const fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
+            updateStatus('✓ Shaders compiled');
+            
+            // Create program
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                const error = gl.getProgramInfoLog(program);
+                throw new Error('Program link error: ' + error);
+            }
+            updateStatus('✓ Program linked');
+            
+            // Triangle vertices and colors
+            const vertices = new Float32Array([
+                // Position (x, y)    Color (r, g, b)
+                 0.0,  0.5,        1.0, 0.0, 0.0,  // Top - Red
+                -0.5, -0.5,        0.0, 1.0, 0.0,  // Bottom Left - Green
+                 0.5, -0.5,        0.0, 0.0, 1.0   // Bottom Right - Blue
+            ]);
+            
+            // Create buffer
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            updateStatus('✓ Buffer created and filled');
+            
+            // Get attribute locations
+            const positionLocation = gl.getAttribLocation(program, 'aPosition');
+            const colorLocation = gl.getAttribLocation(program, 'aColor');
+            updateStatus('✓ Attribute locations obtained');
+            
+            // Set up attributes
+            gl.useProgram(program);
+            
+            const stride = 5 * 4; // 5 floats per vertex, 4 bytes per float
+            
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, stride, 0);
+            
+            gl.enableVertexAttribArray(colorLocation);
+            gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, stride, 2 * 4);
+            updateStatus('✓ Attributes configured');
+            
+            // Clear and draw
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            updateStatus('✓ Triangle rendered! You should see a colored triangle above.');
+            
+            console.log('Test 1 completed successfully!');
+            
+        } catch (error) {
+            updateStatus('✗ Error: ' + error.message, true);
+            console.error('Test 1 failed:', error);
+        }
+    </script>
+</body>
+</html>
