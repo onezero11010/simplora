@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaction Demo - Simplora WebGL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            background: #1a1a2e;
+        }
+        
+        #canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 320px;
+            z-index: 100;
+        }
+        
+        #info h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+        
+        #info p {
+            font-size: 14px;
+            color: #4a4a6a;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        #info .feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        
+        #info .feature-icon {
+            font-size: 16px;
+        }
+        
+        #status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            font-size: 14px;
+            color: #1a1a2e;
+            z-index: 100;
+        }
+        
+        #status .label {
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        
+        #status .value {
+            color: #4a4a6a;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div id="info">
+        <h1>🎯 Interaction Demo</h1>
+        <div class="feature">
+            <span class="feature-icon">🖱️</span>
+            <span><strong>Click</strong> to select objects</span>
+        </div>
+        <div class="feature">
+            <span class="feature-icon">✨</span>
+            <span><strong>Hover</strong> to highlight objects</span>
+        </div>
+        <div class="feature">
+            <span class="feature-icon">🔄</span>
+            <span><strong>Ctrl + Drag</strong> to move objects</span>
+        </div>
+        <div class="feature">
+            <span class="feature-icon">🎮</span>
+            <span><strong>Right-click + drag</strong> to pan camera</span>
+        </div>
+        <div class="feature">
+            <span class="feature-icon">🔍</span>
+            <span><strong>Scroll</strong> to zoom in/out</span>
+        </div>
+    </div>
+    
+    <div id="status">
+        <div><span class="label">Selected:</span><span class="value" id="selectedValue">None</span></div>
+        <div><span class="label">Hovered:</span><span class="value" id="hoveredValue">None</span></div>
+    </div>
+    
+    <script src="../dist/simplora-webgl.umd.js"></script>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const renderer = new SimploraWebGL.WebGLRenderer(canvas);
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        const camera = new SimploraWebGL.Camera(
+            Math.PI / 4,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            100
+        );
+        camera.setPosition(0, 3, 8);
+        
+        const scene = new SimploraWebGL.Scene();
+        
+        const orbitController = new SimploraWebGL.OrbitController(camera, canvas, {
+            enableRotate: true,
+            enableZoom: true,
+            enablePan: true,
+            rotateSpeed: 1.0,
+            zoomSpeed: 1.0,
+            panSpeed: 1.0
+        });
+        
+        const interactionController = new SimploraWebGL.InteractionController(
+            camera, 
+            canvas, 
+            scene, 
+            renderer.getGL(),
+            {
+                enableSelection: true,
+                enableHover: true,
+                enableDrag: true,
+                hoverColor: [1.0, 1.0, 0.0],
+                selectionColor: [1.0, 0.0, 0.0]
+            }
+        );
+        
+        const selectedValue = document.getElementById('selectedValue');
+        const hoveredValue = document.getElementById('hoveredValue');
+        
+        interactionController.setSelectionCallback((mesh) => {
+            if (mesh) {
+                selectedValue.textContent = 'Object selected';
+            } else {
+                selectedValue.textContent = 'None';
+            }
+        });
+        
+        interactionController.setHoverCallback((mesh) => {
+            if (mesh) {
+                hoveredValue.textContent = 'Object hovered';
+            } else {
+                hoveredValue.textContent = 'None';
+            }
+        });
+        
+        const colors = [
+            [1.0, 0.3, 0.3],
+            [0.3, 1.0, 0.3],
+            [0.3, 0.3, 1.0],
+            [1.0, 1.0, 0.3],
+            [1.0, 0.3, 1.0],
+            [0.3, 1.0, 1.0]
+        ];
+        
+        const geometries = [
+            new SimploraWebGL.BoxGeometry(1, 1, 1),
+            new SimploraWebGL.SphereGeometry(0.6, 32, 16),
+            new SimploraWebGL.ConeGeometry(0.6, 1.2, 32),
+            new SimploraWebGL.CylinderGeometry(0.5, 0.5, 1.2, 32),
+            new SimploraWebGL.TorusGeometry(0.5, 0.2, 16, 32),
+            new SimploraWebGL.CapsuleGeometry(0.4, 0.8, 8, 16)
+        ];
+        
+        const meshes = [];
+        
+        for (let i = 0; i < 6; i++) {
+            const material = new SimploraWebGL.BasicMaterial({
+                color: colors[i],
+                opacity: 1.0
+            });
+            
+            const mesh = new SimploraWebGL.Mesh(geometries[i], material);
+            
+            const angle = (i / 6) * Math.PI * 2;
+            const radius = 2.5;
+            mesh.setPosition(
+                Math.cos(angle) * radius,
+                0,
+                Math.sin(angle) * radius
+            );
+            
+            scene.add(mesh);
+            meshes.push(mesh);
+        }
+        
+        const floorGeometry = new SimploraWebGL.PlaneGeometry(10, 10);
+        const floorMaterial = new SimploraWebGL.BasicMaterial({
+            color: [0.2, 0.2, 0.3],
+            opacity: 1.0
+        });
+        const floor = new SimploraWebGL.Mesh(floorGeometry, floorMaterial);
+        floor.setRotation(-Math.PI / 2, 0, 0);
+        floor.setPosition(0, -1, 0);
+        scene.add(floor);
+        
+        function animate() {
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            interactionController.resize();
+        });
+        
+        animate();
+    </script>
+</body>
+</html>

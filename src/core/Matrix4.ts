@@ -120,13 +120,13 @@ export class Matrix4 {
     const b = other.elements;
     const out = result.elements;
     
-    for (let i = 0; i < 4; i++) {
-      for (let j = 0; j < 4; j++) {
-        out[i * 4 + j] = 
-          a[i * 4 + 0] * b[0 * 4 + j] +
-          a[i * 4 + 1] * b[1 * 4 + j] +
-          a[i * 4 + 2] * b[2 * 4 + j] +
-          a[i * 4 + 3] * b[3 * 4 + j];
+    for (let col = 0; col < 4; col++) {
+      for (let row = 0; row < 4; row++) {
+        out[col * 4 + row] = 
+          a[0 * 4 + row] * b[col * 4 + 0] +
+          a[1 * 4 + row] * b[col * 4 + 1] +
+          a[2 * 4 + row] * b[col * 4 + 2] +
+          a[3 * 4 + row] * b[col * 4 + 3];
       }
     }
     
@@ -137,6 +137,59 @@ export class Matrix4 {
     const matrix = new Matrix4();
     matrix.elements.set(this.elements);
     return matrix;
+  }
+  
+  public static invert(src: Float32Array, dst: Float32Array): Float32Array {
+    const s = src;
+    const d = dst;
+    
+    const s00 = s[0], s01 = s[1], s02 = s[2], s03 = s[3];
+    const s10 = s[4], s11 = s[5], s12 = s[6], s13 = s[7];
+    const s20 = s[8], s21 = s[9], s22 = s[10], s23 = s[11];
+    const s30 = s[12], s31 = s[13], s32 = s[14], s33 = s[15];
+    
+    const t00 = s00 * s11 - s01 * s10;
+    const t01 = s00 * s12 - s02 * s10;
+    const t02 = s00 * s13 - s03 * s10;
+    const t03 = s01 * s12 - s02 * s11;
+    const t04 = s01 * s13 - s03 * s11;
+    const t05 = s02 * s13 - s03 * s12;
+    const t06 = s20 * s31 - s21 * s30;
+    const t07 = s20 * s32 - s22 * s30;
+    const t08 = s20 * s33 - s23 * s30;
+    const t09 = s21 * s32 - s22 * s31;
+    const t10 = s21 * s33 - s23 * s31;
+    const t11 = s22 * s33 - s23 * s32;
+    
+    let det = t00 * t11 - t01 * t10 + t02 * t09 + t03 * t08 - t04 * t07 + t05 * t06;
+    
+    if (!det) {
+      return dst;
+    }
+    
+    const invDet = 1.0 / det;
+    
+    d[0] = (s11 * t11 - s12 * t10 + s13 * t09) * invDet;
+    d[1] = (s02 * t10 - s01 * t11 - s03 * t09) * invDet;
+    d[2] = (s31 * t05 - s32 * t04 + s33 * t03) * invDet;
+    d[3] = (s22 * t04 - s21 * t05 - s23 * t03) * invDet;
+    
+    d[4] = (s12 * t08 - s10 * t11 - s13 * t07) * invDet;
+    d[5] = (s00 * t11 - s02 * t08 + s03 * t07) * invDet;
+    d[6] = (s32 * t02 - s30 * t05 - s33 * t01) * invDet;
+    d[7] = (s20 * t05 - s22 * t02 + s23 * t01) * invDet;
+    
+    d[8] = (s10 * t10 - s11 * t08 + s13 * t06) * invDet;
+    d[9] = (s01 * t08 - s00 * t10 - s03 * t06) * invDet;
+    d[10] = (s30 * t04 - s31 * t02 + s33 * t00) * invDet;
+    d[11] = (s21 * t02 - s20 * t04 - s23 * t00) * invDet;
+    
+    d[12] = (s11 * t07 - s10 * t09 - s12 * t06) * invDet;
+    d[13] = (s00 * t09 - s01 * t07 + s02 * t06) * invDet;
+    d[14] = (s31 * t01 - s30 * t03 - s32 * t00) * invDet;
+    d[15] = (s20 * t03 - s21 * t01 + s22 * t00) * invDet;
+    
+    return dst;
   }
 }
 

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Control Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-5 font-sans bg-gray-200">
+    <div id="info" class="bg-white p-4 rounded-lg mb-5">
+        <h2 class="text-xl font-bold mb-2">🎮 Camera Control Demo</h2>
+        <p class="text-gray-600 mb-2">Demonstrates orbit controller with rotation, zoom, pan, and view presets.</p>
+        <div class="text-sm text-gray-700 mb-2">
+            <strong>Controls:</strong> Left drag to rotate | Right drag/Shift+drag to pan | Scroll to zoom | Ctrl+drag to move object | Click to select
+        </div>
+        <div class="flex flex-wrap gap-2 mb-2">
+            <button onclick="switchToPreset('front')" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">Front</button>
+            <button onclick="switchToPreset('back')" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">Back</button>
+            <button onclick="switchToPreset('top')" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">Top</button>
+            <button onclick="switchToPreset('bottom')" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">Bottom</button>
+            <button onclick="switchToPreset('left')" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">Left</button>
+            <button onclick="switchToPreset('right')" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">Right</button>
+            <button onclick="switchToPreset('isometric')" class="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm">Isometric</button>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <button onclick="nextPreset()" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm">Next Preset</button>
+            <button onclick="previousPreset()" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm">Previous Preset</button>
+            <button onclick="toggleRotate()" id="rotateBtn" class="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm">Toggle Rotate</button>
+            <button onclick="toggleZoom()" id="zoomBtn" class="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm">Toggle Zoom</button>
+            <button onclick="togglePan()" id="panBtn" class="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm">Toggle Pan</button>
+        </div>
+        <p id="status" class="text-green-600 mt-2">Initializing...</p>
+        <p id="interactionStatus" class="text-blue-600 mt-1"></p>
+    </div>
+    <canvas id="canvas" width="800" height="600" class="border-2 border-gray-800 bg-black block"></canvas>
+    
+    <script src="../dist/simplora-webgl.umd.js"></script>
+    <script>
+        let orbitController = null;
+        
+        function updateStatus(message, isError = false) {
+            const status = document.getElementById('status');
+            status.innerHTML = message;
+            status.className = isError ? 'text-red-600' : 'text-green-600';
+            console.log(message);
+        }
+        
+        function switchToPreset(name) {
+            if (orbitController) {
+                orbitController.switchToPresetByName(name);
+                updateStatus(`✓ Switched to ${name} view`);
+            }
+        }
+        
+        function nextPreset() {
+            if (orbitController) {
+                orbitController.nextPreset();
+                const current = orbitController.getCurrentPreset();
+                updateStatus(`✓ Switched to ${current ? current.name : 'unknown'} view`);
+            }
+        }
+        
+        function previousPreset() {
+            if (orbitController) {
+                orbitController.previousPreset();
+                const current = orbitController.getCurrentPreset();
+                updateStatus(`✓ Switched to ${current ? current.name : 'unknown'} view`);
+            }
+        }
+        
+        function toggleRotate() {
+            if (orbitController) {
+                const btn = document.getElementById('rotateBtn');
+                const enabled = !orbitController.options.enableRotate;
+                orbitController.setEnableRotate(enabled);
+                btn.textContent = enabled ? 'Disable Rotate' : 'Enable Rotate';
+                updateStatus(`✓ Rotation ${enabled ? 'enabled' : 'disabled'}`);
+            }
+        }
+        
+        function toggleZoom() {
+            if (orbitController) {
+                const btn = document.getElementById('zoomBtn');
+                const enabled = !orbitController.options.enableZoom;
+                orbitController.setEnableZoom(enabled);
+                btn.textContent = enabled ? 'Disable Zoom' : 'Enable Zoom';
+                updateStatus(`✓ Zoom ${enabled ? 'enabled' : 'disabled'}`);
+            }
+        }
+        
+        function togglePan() {
+            if (orbitController) {
+                const btn = document.getElementById('panBtn');
+                const enabled = !orbitController.options.enablePan;
+                orbitController.setEnablePan(enabled);
+                btn.textContent = enabled ? 'Disable Pan' : 'Enable Pan';
+                updateStatus(`✓ Pan ${enabled ? 'enabled' : 'disabled'}`);
+            }
+        }
+        
+        console.log('=== Camera Control Demo ===');
+        
+        try {
+            if (typeof SimploraWebGL === 'undefined') {
+                throw new Error('SimploraWebGL library not loaded');
+            }
+            updateStatus('✓ Library loaded');
+            
+            const { WebGLRenderer, Camera, Scene, Mesh, BoxGeometry, SphereGeometry, CylinderGeometry, BasicMaterial, OrbitController, InteractionController } = SimploraWebGL;
+            console.log('✓ Classes imported');
+            
+            const canvas = document.getElementById('canvas');
+            const renderer = new WebGLRenderer(canvas);
+            updateStatus('✓ Renderer created');
+            
+            const camera = new Camera(Math.PI / 4, 800 / 600, 0.1, 100);
+            camera.setPosition(5, 5, 5);
+            updateStatus('✓ Camera created');
+            
+            const scene = new Scene();
+            updateStatus('✓ Scene created');
+            
+            const boxGeometry = new BoxGeometry(2, 2, 2);
+            const boxMaterial = new BasicMaterial({ color: [1.0, 0.3, 0.3], opacity: 1.0 });
+            const box = new Mesh(boxGeometry, boxMaterial);
+            box.setPosition(-2, 0, 0);
+            scene.add(box);
+            
+            const sphereGeometry = new SphereGeometry(1.2, 32, 16);
+            const sphereMaterial = new BasicMaterial({ color: [0.3, 0.3, 1.0], opacity: 1.0 });
+            const sphere = new Mesh(sphereGeometry, sphereMaterial);
+            sphere.setPosition(2, 0, 0);
+            scene.add(sphere);
+            
+            const cylinderGeometry = new CylinderGeometry(0.8, 0.8, 2, 32);
+            const cylinderMaterial = new BasicMaterial({ color: [0.3, 1.0, 0.3], opacity: 1.0 });
+            const cylinder = new Mesh(cylinderGeometry, cylinderMaterial);
+            cylinder.setPosition(0, 0, -2);
+            scene.add(cylinder);
+            
+            updateStatus('✓ Objects created and added to scene');
+            
+            orbitController = new OrbitController(camera, canvas, {
+                enableRotate: true,
+                enableZoom: true,
+                enablePan: true,
+                rotateSpeed: 1.0,
+                zoomSpeed: 1.0,
+                panSpeed: 1.0,
+                minDistance: 2,
+                maxDistance: 20
+            });
+            updateStatus('✓ Orbit controller created');
+            
+            const interactionController = new InteractionController(camera, canvas, scene, renderer.getGL(), {
+                enableSelection: true,
+                enableHover: true,
+                enableDrag: true,
+                hoverColor: [1.0, 1.0, 0.0],
+                selectionColor: [1.0, 0.0, 0.0]
+            });
+            
+            const interactionStatus = document.getElementById('interactionStatus');
+            interactionController.setSelectionCallback((mesh) => {
+                interactionStatus.textContent = mesh ? '🔴 Selected: ' + (mesh === box ? 'Box' : mesh === sphere ? 'Sphere' : 'Cylinder') : 'Selection cleared';
+            });
+            interactionController.setHoverCallback((mesh) => {
+                if (mesh && !interactionController.getSelectedMesh()) {
+                    interactionStatus.textContent = '🟡 Hovering: ' + (mesh === box ? 'Box' : mesh === sphere ? 'Sphere' : 'Cylinder');
+                } else if (!mesh && !interactionController.getSelectedMesh()) {
+                    interactionStatus.textContent = '';
+                }
+            });
+            updateStatus('✓ Interaction controller created');
+            
+            let rotation = 0;
+            let frameCount = 0;
+            
+            function animate() {
+                rotation += 0.01;
+                frameCount++;
+                
+                box.setRotation(rotation, rotation * 0.7, 0);
+                sphere.setRotation(rotation * 0.5, rotation, 0);
+                cylinder.setRotation(0, rotation, rotation * 0.5);
+                
+                renderer.render(scene, camera);
+                
+                if (frameCount === 1) {
+                    updateStatus('✓ Rendering! Use mouse to control camera. Try the preset buttons above!');
+                }
+                
+                requestAnimationFrame(animate);
+            }
+            
+            console.log('Starting animation...');
+            animate();
+            
+        } catch (error) {
+            updateStatus('✗ Error: ' + error.message, true);
+            console.error('Camera control demo failed:', error);
+            console.error('Stack trace:', error.stack);
+        }
+    </script>
+</body>
+</html>

@@ -2,6 +2,8 @@ export { WebGLRenderer } from './core/WebGLRenderer';
 export { Shader } from './core/Shader';
 export { Matrix4 } from './core/Matrix4';
 export { Camera } from './core/Camera';
+export { OrbitController, type ViewPreset, type OrbitControllerOptions } from './core/OrbitController';
+export { InteractionController, type InteractionControllerOptions, type SelectionCallback, type HoverCallback } from './core/InteractionController';
 export { Geometry } from './geometry/Geometry';
 export { BoxGeometry } from './geometry/base/BoxGeometry';
 export { SphereGeometry } from './geometry/base/SphereGeometry';

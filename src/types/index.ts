@@ -26,4 +26,31 @@ export interface CameraOptions {
   far?: number;
 }
 
+export interface OrbitControllerOptions {
+  enableRotate?: boolean;
+  enableZoom?: boolean;
+  enablePan?: boolean;
+  rotateSpeed?: number;
+  zoomSpeed?: number;
+  panSpeed?: number;
+  minDistance?: number;
+  maxDistance?: number;
+  minPolarAngle?: number;
+  maxPolarAngle?: number;
+}
+
+export interface ViewPreset {
+  name: string;
+  position: [number, number, number];
+  target: [number, number, number];
+}
+
+export interface InteractionControllerOptions {
+  enableSelection?: boolean;
+  enableHover?: boolean;
+  enableDrag?: boolean;
+  hoverColor?: [number, number, number];
+  selectionColor?: [number, number, number];
+}
+
 export type NumberArray = number[];

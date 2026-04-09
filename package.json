@@ -26,6 +26,7 @@
     "vite": "^8.0.4"
   },
   "dependencies": {
+    "prettier": "^3.8.1",
     "terser": "^5.46.1"
   }
 }
